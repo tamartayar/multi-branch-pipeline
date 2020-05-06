@@ -1,27 +1,10 @@
-/*
-    This is an example pipeline that implement full CI/CD for a simple static web site packed in a Docker image.
-
-    The pipeline is made up of 6 main steps
-    1. Git clone and setup
-    2. Build and local tests
-    3. Publish Docker and Helm
-    4. Deploy to dev and test
-    5. Deploy to staging and test
-    6. Optionally deploy to production and test
- */
-
-/*
-    Create the kubernetes namespace
- */
+//Create the kubernetes namespace
 def createNamespace (namespace) {
     echo "Creating namespace ${namespace} if needed"
-
     sh "[ ! -z \"\$(kubectl get ns ${namespace} -o name 2>/dev/null)\" ] || kubectl create ns ${namespace}"
 }
 
-/*
-    Helm install
- */
+//Helm install
 def helmInstall (namespace, release) {
     echo "Installing ${release} in ${namespace}"
 
@@ -37,9 +20,7 @@ def helmInstall (namespace, release) {
     }
 }
 
-/*
-    Helm delete (if exists)
- */
+//Helm delete (if exists)
 def helmDelete (namespace, release) {
     echo "Deleting ${release} in ${namespace} if deployed"
 
@@ -49,9 +30,7 @@ def helmDelete (namespace, release) {
     }
 }
 
-/*
-    Run a curl against a given url
- */
+//Run a curl against a given url
 def curlRun (url, out) {
     echo "Running curl on ${url}"
 
@@ -68,9 +47,7 @@ def curlRun (url, out) {
     }
 }
 
-/*
-    Test with a simple curl and check we get 200 back
- */
+//Test with a simple curl and check we get 200 back
 def curlTest (namespace, out) {
     echo "Running tests in ${namespace}"
 
@@ -97,9 +74,7 @@ def curlTest (namespace, out) {
     }
 }
 
-/*
-    This is the main pipeline section with the stages of the CI/CD
- */
+//This is the main pipeline section with the stages of the CI/CD
 pipeline {
 
     options {
@@ -109,7 +84,7 @@ pipeline {
 
     // Some global default variables
     environment {
-        IMAGE_NAME = 'acme'
+        IMAGE_NAME = 'website'
         TEST_LOCAL_PORT = 8817
         DEPLOY_PROD = false
         PARAMETERS_FILE = "${JENKINS_HOME}/parameters.groovy"
@@ -141,13 +116,11 @@ pipeline {
     // Pipeline stages
     stages {
 
-        ////////// Step 1 //////////
         stage('Git clone and setup') {
             steps {
-                echo "Check out acme code"
+                echo "Check out website code"
                 git branch: "master",
-                        credentialsId: 'eldada-bb',
-                        url: 'https://github.com/eldada/jenkins-pipeline-kubernetes.git'
+                        url: 'https://github.com/echovue/static_site.git'
 
                 // Validate kubectl
                 sh "kubectl cluster-info"
@@ -178,7 +151,6 @@ pipeline {
             }
         }
 
-        ////////// Step 2 //////////
         stage('Build and tests') {
             steps {
                 echo "Building application and Docker image"
@@ -198,7 +170,7 @@ pipeline {
             }
         }
 
-        // Run the 3 tests on the currently running ACME Docker container
+        // Run the 3 tests on the currently running Website Docker container
         stage('Local tests') {
             parallel {
                 stage('Curl http_code') {
@@ -219,7 +191,6 @@ pipeline {
             }
         }
 
-        ////////// Step 3 //////////
         stage('Publish Docker and Helm') {
             steps {
                 echo "Stop and remove container"
@@ -233,7 +204,6 @@ pipeline {
             }
         }
 
-        ////////// Step 4 //////////
         stage('Deploy to dev') {
             steps {
                 script {
@@ -282,7 +252,6 @@ pipeline {
             }
         }
 
-        ////////// Step 5 //////////
         stage('Deploy to staging') {
             steps {
                 script {
@@ -331,8 +300,6 @@ pipeline {
             }
         }
 
-        ////////// Step 6 //////////
-        // Waif for user manual approval, or proceed automatically if DEPLOY_TO_PROD is true
         stage('Go for Production?') {
             when {
                 allOf {
