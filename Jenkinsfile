@@ -2,7 +2,7 @@ pipeline {
 
     options {
         // Build auto timeout
-        timeout(time: 60, unit: 'MINUTES')
+        // timeout(time: 60, unit: 'MINUTES')
     }
 
     // Some global default variables
@@ -22,7 +22,7 @@ pipeline {
         // In this example, the parameters are loaded from file ${JENKINS_HOME}/parameters.groovy later in the pipeline.
         // The ${JENKINS_HOME}/parameters.groovy can be a mounted secrets file in your Jenkins container.
 /*
-        string (name: 'DOCKER_REG',       defaultValue: 'docker-artifactory.my',                   description: 'Docker registry')
+        string (name: 'DOCKER_REG',       defaultValue: 'me-west1-docker.pkg.dev/dgt-gcp-moe-dev-0/java-test',                   description: 'Docker registry')
         string (name: 'DOCKER_TAG',       defaultValue: 'dev',                                     description: 'Docker tag')
         string (name: 'DOCKER_USR',       defaultValue: 'admin',                                   description: 'Your helm repository user')
         string (name: 'DOCKER_PSW',       defaultValue: 'password',                                description: 'Your helm repository password')
@@ -41,9 +41,10 @@ pipeline {
 
         stage('Git clone and setup') {
             steps {
+                echo "WORKSPACE=${WORKSPACE}"
                 echo "Check out website code"
                 git branch: "master",
-                        url: 'https://github.com/echovue/static_site.git'
+                        url: 'https://github.com/tamartayar/multi-branch-pipeline.git'
 
                 // Validate kubectl
 //                sh "kubectl cluster-info"
